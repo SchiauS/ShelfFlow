@@ -75,5 +75,7 @@ router.patch('/admin/users/:id', ...adminOnly, uuidParam(), admin.updateUser);
 router.get('/admin/loans', ...adminOnly, admin.loans);
 router.get('/admin/stats', ...adminOnly, admin.stats);
 router.get('/admin/audit', ...adminOnly, admin.audit);
+router.get('/admin/reviews', ...adminOnly, admin.reviews);
+router.delete('/admin/reviews/:id', ...adminOnly, uuidParam(), admin.deleteReview);
 
 module.exports = router;

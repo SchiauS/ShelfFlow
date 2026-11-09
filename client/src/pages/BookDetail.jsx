@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, CalendarDays, Edit3, Hash, Languages, Library, Trash2, Undo2 } from 'lucide-react';
+import { BookOpen, CalendarDays, Edit3, Hash, Languages, Library, ShieldCheck, Trash2, Undo2 } from 'lucide-react';
 import { api, assetUrl } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
 import { ConfirmDialog, Empty, ErrorBox, Field, Loading, Stars } from '../components/ui.jsx';
+import StarRating from '../components/StarRating.jsx';
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -69,7 +70,7 @@ export default function BookDetail() {
   return (
     <div className="page">
       <div className="detail">
-        <div>
+        <div className="detail__aside">
           <div className="detail__cover">
             {book.coverUrl ? <img src={assetUrl(book.coverUrl)} alt={`Coperta ${book.title}`} /> : (
               <div className="book-card__placeholder"><BookOpen size={28} /><span className="book-card__ptitle">{book.title}</span><span className="book-card__pauthor">{book.author}</span></div>
@@ -127,10 +128,8 @@ export default function BookDetail() {
                 <h3>Scrie o recenzie</h3>
                 <ErrorBox error={reviewError} />
                 <div className="form-grid">
-                  <Field label="Rating" htmlFor="rating">
-                    <select id="rating" className="select" value={review.rating} onChange={(e) => setReview({ ...review, rating: e.target.value })}>
-                      {[5, 4, 3, 2, 1].map((n) => <option key={n} value={n}>{n} {'★'.repeat(n)}</option>)}
-                    </select>
+                  <Field label="Rating" htmlFor="rating" full>
+                    <StarRating value={Number(review.rating)} onChange={(n) => setReview({ ...review, rating: n })} />
                   </Field>
                   <Field label="Text" htmlFor="content" full>
                     <textarea id="content" className="textarea" required maxLength={2000} value={review.content}
@@ -152,9 +151,10 @@ export default function BookDetail() {
                 <Stars value={r.rating} />
               </div>
               <p style={{ margin: '0.4rem 0 0', whiteSpace: 'pre-line' }}>{r.content}</p>
-              {r.ownedByMe && (
+              {(r.ownedByMe || isAdmin) && (
                 <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: '0.5rem' }} onClick={() => deleteReview(r.id)}>
-                  <Undo2 size={13} /> Șterge recenzia
+                  {r.ownedByMe ? <Undo2 size={13} /> : <ShieldCheck size={13} />}
+                  {r.ownedByMe ? 'Șterge recenzia' : 'Moderează recenzia'}
                 </button>
               )}
             </article>

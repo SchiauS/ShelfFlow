@@ -154,4 +154,21 @@ describe('authorization and private data (F5, F6)', () => {
       await owner.agent.get(`${API}${path}`).expect(200);
     }
   });
+
+  it('administrators can list and moderate any review', async () => {
+    const owner = await makeOwner();
+    const author = await makeUser();
+    const book = await createBook(owner);
+    const { Review } = require('../src/models');
+    const review = await Review.create({ userId: author.user.id, bookId: book.id, rating: 2, content: 'Recenzie de moderat.' });
+
+    const list = await owner.agent.get(`${API}/admin/reviews?pageSize=50`).expect(200);
+    expect(list.body.items.some((r) => r.id === review.id)).toBe(true);
+
+    const denied = await author.agent.delete(`${API}/admin/reviews/${review.id}`).set('x-csrf-token', author.token);
+    expect(denied.status).toBe(403);
+
+    await owner.agent.delete(`${API}/admin/reviews/${review.id}`).set('x-csrf-token', owner.token).expect(200);
+    expect(await Review.count({ where: { id: review.id } })).toBe(0);
+  });
 });

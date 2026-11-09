@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, BookOpen, Users, Library } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AlertTriangle, BookOpen, MessageSquare, Users, Library } from 'lucide-react';
 import { api } from '../lib/api.js';
-import { ErrorBox, Loading } from '../components/ui.jsx';
+import { ConfirmDialog, ErrorBox, Loading, Stars } from '../components/ui.jsx';
 import { useAuth } from '../lib/auth.jsx';
 
 export default function Admin() {
@@ -11,17 +12,27 @@ export default function Admin() {
   const [users, setUsers] = useState([]);
   const [loans, setLoans] = useState([]);
   const [audit, setAudit] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [pendingReview, setPendingReview] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     try {
-      const [s, u, l, a] = await Promise.all([
+      const [s, u, l, a, r] = await Promise.all([
         api('/admin/stats'), api('/admin/users?pageSize=50'), api('/admin/loans'), api('/admin/audit'),
+        api('/admin/reviews?pageSize=50'),
       ]);
-      setStats(s); setUsers(u.items); setLoans(l.items); setAudit(a.items);
+      setStats(s); setUsers(u.items); setLoans(l.items); setAudit(a.items); setReviews(r.items);
     } catch (err) { setError(err); }
   }, []);
   useEffect(() => { load(); }, [load]);
+
+  const removeReview = async (id) => {
+    try {
+      await api(`/admin/reviews/${id}`, { method: 'DELETE' });
+      await load();
+    } catch (err) { setError(err); }
+  };
 
   const updateUser = async (id, patch) => {
     try {
@@ -38,15 +49,16 @@ export default function Admin() {
       <p className="muted small">Zonă rezervată rolurilor ADMIN și OWNER. Toate verificările sunt repetate pe server.</p>
       <ErrorBox error={error} />
 
-      <div className="stats stats--4" style={{ marginBottom: '1.6rem' }}>
+      <div className="stats stats--5" style={{ marginBottom: '1.6rem' }}>
         <div className="stat"><div className="stat__value">{stats.books}</div><div className="stat__label"><BookOpen size={12} /> Cărți</div></div>
         <div className="stat"><div className="stat__value">{stats.users}</div><div className="stat__label"><Users size={12} /> Utilizatori</div></div>
         <div className="stat"><div className="stat__value">{stats.activeLoans}</div><div className="stat__label"><Library size={12} /> Împrumuturi active</div></div>
         <div className="stat"><div className="stat__value">{stats.overdue}</div><div className="stat__label"><AlertTriangle size={12} /> Întârziate</div></div>
+        <div className="stat"><div className="stat__value">{stats.reviews}</div><div className="stat__label"><MessageSquare size={12} /> Recenzii</div></div>
       </div>
 
       <div className="tabs">
-        {[['overview', 'Sumar'], ['users', 'Utilizatori'], ['loans', 'Împrumuturi'], ['audit', 'Jurnal']].map(([k, label]) => (
+        {[['overview', 'Sumar'], ['users', 'Utilizatori'], ['loans', 'Împrumuturi'], ['reviews', 'Recenzii'], ['audit', 'Jurnal']].map(([k, label]) => (
           <button key={k} type="button" className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
@@ -113,6 +125,41 @@ export default function Admin() {
             </tbody>
           </table>
         </div>
+        </>
+      )}
+
+      {tab === 'reviews' && (
+        <>
+        <p className="small muted" style={{ margin: '0 0 0.8rem' }}>
+          Moderare recenzii: poți șterge orice recenzie. Ștergerea este înregistrată în jurnalul de audit.
+        </p>
+        <div className="card table-wrap">
+          <table className="data">
+            <thead><tr><th>Carte</th><th>Autor recenzie</th><th>Rating</th><th>Text</th><th>Data</th><th>Acțiuni</th></tr></thead>
+            <tbody>
+              {reviews.length === 0 && <tr><td colSpan={6} className="muted small">Nicio recenzie.</td></tr>}
+              {reviews.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.book ? <Link to={`/books/${r.book.id}`}>{r.book.title}</Link> : '—'}</td>
+                  <td className="small">{r.user ? r.user.name : '—'}<div className="tiny muted">{r.user?.email}</div></td>
+                  <td><Stars value={r.rating} /></td>
+                  <td className="small" style={{ maxWidth: 320 }}>{r.content.length > 140 ? r.content.slice(0, 140) + '…' : r.content}</td>
+                  <td className="small">{new Date(r.createdAt).toLocaleDateString('ro-RO')}</td>
+                  <td><button type="button" className="btn btn-danger btn-sm" onClick={() => setPendingReview(r)}>Șterge</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ConfirmDialog
+          open={Boolean(pendingReview)}
+          title="Ștergi recenzia?"
+          body={pendingReview ? `Recenzia „${pendingReview.content.slice(0, 80)}…” pentru ${pendingReview.book?.title || 'carte'} va fi ștearsă definitiv.` : ''}
+          confirmLabel="Șterge recenzia"
+          danger
+          onConfirm={async () => { const r = pendingReview; setPendingReview(null); await removeReview(r.id); }}
+          onCancel={() => setPendingReview(null)}
+        />
         </>
       )}
 

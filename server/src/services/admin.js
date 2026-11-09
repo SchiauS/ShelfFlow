@@ -58,6 +58,35 @@ async function updateUser(actor, id, data) {
   return userShape(user);
 }
 
+async function listReviews({ q, page = 1, pageSize = 20 }) {
+  const where = q ? { content: { [Op.iLike]: `%${q}%` } } : {};
+  const { rows, count } = await Review.findAndCountAll({
+    where,
+    include: [
+      { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+      { model: Book, as: 'book', attributes: ['id', 'title', 'author'] },
+    ],
+    order: [['createdAt', 'DESC']], limit: pageSize, offset: (page - 1) * pageSize, distinct: true,
+  });
+  return {
+    items: rows.map((r) => ({
+      id: r.id, rating: r.rating, content: r.content, createdAt: r.createdAt,
+      user: r.user && { id: r.user.id, name: r.user.name, email: r.user.email },
+      book: r.book && { id: r.book.id, title: r.book.title, author: r.book.author },
+    })),
+    total: count, page, pageSize,
+  };
+}
+
+async function deleteReview(actor, id) {
+  const review = await Review.findByPk(id);
+  if (!review) throw notFound('Recenzia nu există.');
+  const meta = { bookId: review.bookId, rating: review.rating };
+  await review.destroy();
+  await AuditLog.create({ actorId: actor.id, action: 'review.delete', targetType: 'review', targetId: id, meta });
+  return { ok: true };
+}
+
 async function stats() {
   const [users, books, activeLoans, overdue] = await Promise.all([
     User.count(),
@@ -83,4 +112,4 @@ async function listAudit(limit = 100) {
   return rows;
 }
 
-module.exports = { listUsers, updateUser, stats, listAudit, loans: loanService.listAll };
+module.exports = { listUsers, updateUser, stats, listAudit, loans: loanService.listAll, listReviews, deleteReview };

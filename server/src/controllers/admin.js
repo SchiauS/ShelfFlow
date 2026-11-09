@@ -36,4 +36,12 @@ async function audit(_req, res, next) {
   try { res.json({ items: await adminService.listAudit() }); } catch (err) { next(err); }
 }
 
-module.exports = { users, updateUser, stats, loans, audit };
+async function reviews(req, res, next) {
+  try { res.json(await adminService.listReviews(parse(listSchema, req.query))); } catch (err) { next(err); }
+}
+
+async function deleteReview(req, res, next) {
+  try { res.json(await adminService.deleteReview(req.user, req.params.id)); } catch (err) { next(err); }
+}
+
+module.exports = { users, updateUser, stats, loans, audit, reviews, deleteReview };

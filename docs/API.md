@@ -41,6 +41,8 @@ Coduri: `200` OK, `201` creat, `400` cerere invalidă, `401` neautentificat, `40
 | GET | `/admin/loans` | da | ADMIN |
 | GET | `/admin/stats` | da | ADMIN |
 | GET | `/admin/audit` | da | ADMIN |
+| GET | `/admin/reviews` | da | ADMIN sau OWNER; listă pentru moderare |
+| DELETE | `/admin/reviews/:id` | da | ADMIN sau OWNER; șterge orice recenzie și scrie în audit |
 
 ## Exemple
 
