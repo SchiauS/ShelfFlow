@@ -98,6 +98,11 @@ Aplicația rulează în două containere (app + PostgreSQL) și este publicată 
 - Rollback: păstrează imaginea anterioară (`docker tag`), apoi `docker compose up -d` cu tag-ul vechi;
   volumele nu se șterg.
 
+## Capturi
+
+![Catalog](docs/screenshots/home.png)
+![Administrare](docs/screenshots/admin.png)
+
 ## Documentație
 
 - [`SECURITY.md`](SECURITY.md) — model de amenințare și locațiile verificărilor

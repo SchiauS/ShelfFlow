@@ -2,7 +2,7 @@
   "name": "shelfflow",
   "private": true,
   "version": "1.0.0",
-  "description": "ShelfFlow — library management system (Express + PostgreSQL + React)",
+  "description": "ShelfFlow \u2014 library management system (Express + PostgreSQL + React)",
   "workspaces": [
     "server",
     "client"
@@ -13,7 +13,8 @@
     "start": "npm run start --workspace server",
     "migrate": "npm run migrate --workspace server",
     "seed": "npm run seed --workspace server",
-    "test": "npm run test --workspace server"
+    "test": "npm run test --workspace server",
+    "test:e2e": "node e2e/smoke.js"
   },
   "engines": {
     "node": ">=20"
@@ -21,5 +22,8 @@
   "allowScripts": {
     "sharp@0.33.5": true,
     "esbuild@0.21.5": true
+  },
+  "devDependencies": {
+    "playwright-core": "^1.65.0"
   }
 }
