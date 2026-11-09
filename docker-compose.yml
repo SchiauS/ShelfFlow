@@ -15,6 +15,7 @@ services:
       retries: 5
 
   app:
+    image: shelfflow:1.0.0
     build: .
     restart: unless-stopped
     depends_on:
@@ -40,6 +41,6 @@ services:
 
 volumes:
   shelfflow_pgdata:
-    name: shelfflow_pgdata
+    name: shelfflow_prod_pgdata
   shelfflow_uploads:
-    name: shelfflow_uploads
+    name: shelfflow_prod_uploads

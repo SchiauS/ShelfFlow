@@ -63,22 +63,23 @@ npm run migrate && npm run seed
 npm run dev            # server :3000 + Vite :5173
 ```
 
-## Conturi demo (numai în mediul de test)
+## Conturi demo
 
-| Rol | Email | Parolă |
-| --- | --- | --- |
-| ADMIN | `admin@shelfflow.test` | `ShelfFlow!Demo2026` |
-| ADMIN | `ioana.admin@shelfflow.test` | `ShelfFlow!Demo2026` |
-| USER | `andrei@shelfflow.test` | `ShelfFlow!Demo2026` |
-| USER | `maria@shelfflow.test` | `ShelfFlow!Demo2026` |
+Seed-ul creează 2 conturi ADMIN și 2 USER cu parola din `SEED_PASSWORD`
+(implicit `ShelfFlow!Demo2026`) — **numai pentru baze de date locale/de test**.
 
-Parola provine din `SEED_PASSWORD`; nu rula seed-ul pe instanța publică.
+Pe instanța publică, parolele conturilor demo sunt rotate imediat după seed și păstrate
+în afara repository-ului (`/opt/data/secrets/shelfflow/demo-accounts.txt`, `0600`).
+Nu publica acele credențiale.
 
 ## Teste
 
 ```bash
 npm test                              # 42 teste (auth, autorizare, catalog, împrumuturi, import)
 TEST_DATABASE_URL=postgres://… npm test
+
+# smoke E2E în browser (Chromium existent pe sistem)
+CHROME_PATH=/usr/bin/chromium BASE_URL=http://127.0.0.1:8098/projects/shelfflow   ADMIN_EMAIL=... ADMIN_PASSWORD=... node e2e/smoke.js
 ```
 
 Testele folosesc o bază separată (`shelfflow_test`) și trunchiază tabelele între cazuri.
