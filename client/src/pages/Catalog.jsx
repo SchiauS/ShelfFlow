@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { api } from '../lib/api.js';
 import BookCard from '../components/BookCard.jsx';
 import { Empty, ErrorBox, Field, Loading, Pagination } from '../components/ui.jsx';
+import { useAuth } from '../lib/auth.jsx';
 
 const SORTS = [
   { value: 'newest', label: 'Cele mai noi' },
@@ -12,6 +13,7 @@ const SORTS = [
 ];
 
 export default function Catalog() {
+  const { user } = useAuth();
   const [params, setParams] = useSearchParams();
   const [data, setData] = useState({ loading: true, error: null, items: [], total: 0 });
   const [categories, setCategories] = useState([]);
@@ -75,6 +77,12 @@ export default function Catalog() {
             {data.loading ? 'Se caută…' : `${data.total} ${data.total === 1 ? 'carte' : 'cărți'} în bibliotecă`}
           </p>
         </div>
+        {user && (
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <Link to="/import" className="btn btn-ghost"><Download size={15} /> Import Open Library</Link>
+            <Link to="/books/new" className="btn btn-brand"><Plus size={15} /> Adaugă carte</Link>
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginBottom: '1.6rem' }}>
