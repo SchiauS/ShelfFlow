@@ -1,6 +1,7 @@
 'use strict';
 const { Review, Book, User } = require('../models');
 const { notFound, forbidden, conflict } = require('../lib/errors');
+const { isAdmin } = require('../middleware/auth');
 
 const shape = (r) => ({
   id: r.id, rating: r.rating, content: r.content,
@@ -34,7 +35,7 @@ async function create(user, bookId, data) {
 async function update(user, id, data) {
   const review = await Review.findByPk(id);
   if (!review) throw notFound('Recenzia nu există.');
-  if (user.role !== 'ADMIN' && String(review.userId) !== String(user.id)) {
+  if (!isAdmin(user) && String(review.userId) !== String(user.id)) {
     throw forbidden('Poți modifica doar propriile recenzii.');
   }
   if (data.rating !== undefined) review.rating = data.rating;
@@ -46,7 +47,7 @@ async function update(user, id, data) {
 async function remove(user, id) {
   const review = await Review.findByPk(id);
   if (!review) throw notFound('Recenzia nu există.');
-  if (user.role !== 'ADMIN' && String(review.userId) !== String(user.id)) {
+  if (!isAdmin(user) && String(review.userId) !== String(user.id)) {
     throw forbidden('Poți șterge doar propriile recenzii.');
   }
   await review.destroy();

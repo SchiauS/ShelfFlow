@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, BookOpen, Users, Library } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { ErrorBox, Loading } from '../components/ui.jsx';
+import { useAuth } from '../lib/auth.jsx';
 
 export default function Admin() {
+  const { user: me, isOwner } = useAuth();
   const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -33,7 +35,7 @@ export default function Admin() {
   return (
     <div className="page">
       <h1 style={{ fontSize: '2.3rem' }}>Administrare</h1>
-      <p className="muted small">Zonă rezervată rolului ADMIN. Toate verificările sunt repetate pe server.</p>
+      <p className="muted small">Zonă rezervată rolurilor ADMIN și OWNER. Toate verificările sunt repetate pe server.</p>
       <ErrorBox error={error} />
 
       <div className="stats stats--4" style={{ marginBottom: '1.6rem' }}>
@@ -66,29 +68,52 @@ export default function Admin() {
       )}
 
       {tab === 'users' && (
+        <>
+        <p className="small muted" style={{ margin: '0 0 0.8rem' }}>
+          {isOwner
+            ? 'Ești owner: poți numi administratori și poți activa sau dezactiva conturile. Contul tău și conturile de tip owner sunt protejate.'
+            : 'Contul tău și conturile de administrator sunt protejate — doar ownerul le poate modifica.'}
+        </p>
         <div className="card table-wrap">
           <table className="data">
             <thead><tr><th>Nume</th><th>Email</th><th>Rol</th><th>Stare</th><th>Acțiuni</th></tr></thead>
             <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.name}</td>
-                  <td className="small">{u.email}</td>
-                  <td><span className="pill" style={{ background: u.role === 'ADMIN' ? '#e4f1ea' : '#f1ece1', color: u.role === 'ADMIN' ? '#0a4f3d' : '#5d5648' }}>{u.role}</span></td>
-                  <td>{u.isActive ? 'Activ' : 'Dezactivat'}</td>
-                  <td style={{ display: 'flex', gap: '0.35rem' }}>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => updateUser(u.id, { role: u.role === 'ADMIN' ? 'USER' : 'ADMIN' })}>
-                      {u.role === 'ADMIN' ? 'Fă USER' : 'Fă ADMIN'}
-                    </button>
-                    <button type="button" className="btn btn-danger btn-sm" onClick={() => updateUser(u.id, { isActive: !u.isActive })}>
-                      {u.isActive ? 'Dezactivează' : 'Reactivează'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {users.map((u) => {
+                const isSelf = u.id === me?.id;
+                const isProtectedOwner = u.role === 'OWNER';
+                const canAct = !isSelf && !isProtectedOwner && (isOwner || u.role !== 'ADMIN');
+                const roleStyle = u.role === 'OWNER'
+                  ? { background: '#f7ecd8', color: '#8a5b12' }
+                  : u.role === 'ADMIN' ? { background: '#e4f1ea', color: '#0a4f3d' } : { background: '#f1ece1', color: '#5d5648' };
+                return (
+                  <tr key={u.id}>
+                    <td>
+                      {u.name}
+                      {isSelf && <span className="tiny" style={{ marginLeft: 6, color: 'var(--brand-dark)' }}>· tu</span>}
+                    </td>
+                    <td className="small">{u.email}</td>
+                    <td><span className="pill" style={roleStyle}>{u.role}</span></td>
+                    <td>{u.isActive ? 'Activ' : 'Dezactivat'}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {isProtectedOwner ? <span className="small muted">protejat</span>
+                        : !canAct ? <span className="small muted">—</span> : (
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => updateUser(u.id, { role: u.role === 'ADMIN' ? 'USER' : 'ADMIN' })}>
+                              {u.role === 'ADMIN' ? 'Fă USER' : 'Fă ADMIN'}
+                            </button>
+                            <button type="button" className="btn btn-danger btn-sm" onClick={() => updateUser(u.id, { isActive: !u.isActive })}>
+                              {u.isActive ? 'Dezactivează' : 'Reactivează'}
+                            </button>
+                          </div>
+                        )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {tab === 'loans' && (

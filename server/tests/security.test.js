@@ -1,5 +1,5 @@
 'use strict';
-const { request, app, resetDb, makeUser, makeAdmin, createBook } = require('./helpers');
+const { request, app, resetDb, makeUser, makeAdmin, makeOwner, createBook } = require('./helpers');
 
 const API = '/projects/shelfflow/api/v1';
 
@@ -102,5 +102,56 @@ describe('authorization and private data (F5, F6)', () => {
     const loan = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id }).expect(201);
     const res = await b.agent.post(`${API}/loans/${loan.body.loan.id}/return`).set('x-csrf-token', b.token);
     expect(res.status).toBe(403);
+  });
+
+  it('owner can demote an administrator, but a peer admin cannot', async () => {
+    const owner = await makeOwner();
+    const admin = await makeAdmin();
+    const peer = await makeAdmin();
+
+    const byPeer = await peer.agent.patch(`${API}/admin/users/${admin.user.id}`).set('x-csrf-token', peer.token)
+      .send({ role: 'USER' });
+    expect(byPeer.status).toBe(403);
+
+    const byOwner = await owner.agent.patch(`${API}/admin/users/${admin.user.id}`).set('x-csrf-token', owner.token)
+      .send({ role: 'USER' });
+    expect(byOwner.status).toBe(200);
+    expect(byOwner.body.user.role).toBe('USER');
+  });
+
+  it('nobody can modify or demote the owner account', async () => {
+    const owner = await makeOwner();
+    const admin = await makeAdmin();
+
+    const byAdmin = await admin.agent.patch(`${API}/admin/users/${owner.user.id}`).set('x-csrf-token', admin.token)
+      .send({ isActive: false });
+    expect(byAdmin.status).toBe(403);
+
+    const bySelf = await owner.agent.patch(`${API}/admin/users/${owner.user.id}`).set('x-csrf-token', owner.token)
+      .send({ role: 'ADMIN' });
+    expect(bySelf.status).toBe(422);
+  });
+
+  it('the OWNER role cannot be granted through the API', async () => {
+    const owner = await makeOwner();
+    const user = await makeUser();
+    const res = await owner.agent.patch(`${API}/admin/users/${user.user.id}`).set('x-csrf-token', owner.token)
+      .send({ role: 'OWNER' });
+    expect(res.status).toBe(422);
+  });
+
+  it('an administrator cannot be locked out by another administrator', async () => {
+    const admin = await makeAdmin();
+    const peer = await makeAdmin();
+    const res = await peer.agent.patch(`${API}/admin/users/${admin.user.id}`).set('x-csrf-token', peer.token)
+      .send({ isActive: false });
+    expect(res.status).toBe(403);
+  });
+
+  it('owner keeps full access to every admin endpoint', async () => {
+    const owner = await makeOwner();
+    for (const path of ['/admin/users', '/admin/loans', '/admin/stats', '/admin/audit']) {
+      await owner.agent.get(`${API}${path}`).expect(200);
+    }
   });
 });

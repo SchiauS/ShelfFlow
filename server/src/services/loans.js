@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const { Loan, Book, User, sequelize } = require('../models');
 const config = require('../config');
 const { notFound, conflict, forbidden } = require('../lib/errors');
+const { isAdmin } = require('../middleware/auth');
 
 function shape(loan) {
   const now = Date.now();
@@ -47,7 +48,7 @@ async function returnLoan(user, loanId) {
   return sequelize.transaction(async (transaction) => {
     const loan = await Loan.findByPk(loanId, { transaction, lock: transaction.LOCK.UPDATE });
     if (!loan) throw notFound('Împrumutul nu există.');
-    if (user.role !== 'ADMIN' && String(loan.userId) !== String(user.id)) {
+    if (!isAdmin(user) && String(loan.userId) !== String(user.id)) {
       throw forbidden('Nu poți modifica împrumutul altui utilizator.');
     }
     if (loan.status !== 'active') throw conflict('Împrumutul a fost deja returnat.');

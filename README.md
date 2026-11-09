@@ -15,7 +15,7 @@ Proiect academic (provocarea de securitate 19/20) construit cu **Express + Postg
 | Împrumuturi | Împrumut pe 14 zile, retur, istoric, termene depășite, protecție la cereri concurente |
 | Recenzii | Recenzii publice cu rating 1–5, o recenzie per utilizator și carte, moderare de administrator |
 | Cont | Înregistrare, login, logout, sesiuni persistente, profil, notițe private |
-| Administrare | Utilizatori, roluri, împrumuturi, statistici, jurnal de audit |
+| Administrare | Utilizatori, roluri (USER/ADMIN/OWNER), împrumuturi, statistici, jurnal de audit |
 | Fișiere | Coperți JPEG/PNG/WebP, max 2 MB, re-encodate WebP cu metadate eliminate |
 
 ## Tehnologii

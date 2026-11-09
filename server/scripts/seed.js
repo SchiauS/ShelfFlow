@@ -41,7 +41,7 @@ async function main() {
   await sequelize.query('TRUNCATE admin_audit_log, reviews, private_notes, loans, books, categories, users RESTART IDENTITY CASCADE');
 
   const users = await User.bulkCreate([
-    { name: 'Sebastian Schiau', email: 'admin@shelfflow.test', passwordHash, role: 'ADMIN' },
+    { name: 'Sebastian Schiau', email: 'admin@shelfflow.test', passwordHash, role: 'OWNER' },
     { name: 'Ioana Pavel', email: 'ioana.admin@shelfflow.test', passwordHash, role: 'ADMIN' },
     { name: 'Andrei Popescu', email: 'andrei@shelfflow.test', passwordHash, role: 'USER' },
     { name: 'Maria Ionescu', email: 'maria@shelfflow.test', passwordHash, role: 'USER' },

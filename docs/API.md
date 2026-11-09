@@ -37,7 +37,7 @@ Coduri: `200` OK, `201` creat, `400` cerere invalidă, `401` neautentificat, `40
 | PATCH | `/profile/notes/:id` | da | proprietarul (404 pentru alt utilizator) |
 | DELETE | `/profile/notes/:id` | da | proprietarul |
 | GET | `/admin/users` | da | ADMIN |
-| PATCH | `/admin/users/:id` | da | ADMIN; nu poate retrage ultimul admin |
+| PATCH | `/admin/users/:id` | da | ADMIN sau OWNER; doar OWNER modifică administratori; ownerul e protejat |
 | GET | `/admin/loans` | da | ADMIN |
 | GET | `/admin/stats` | da | ADMIN |
 | GET | `/admin/audit` | da | ADMIN |

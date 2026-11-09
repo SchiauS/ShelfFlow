@@ -6,6 +6,7 @@ const { parse } = require('../lib/validate');
 const { listBooksSchema, bookCreateSchema, bookUpdateSchema } = require('../validators/schemas');
 const { saveCover } = require('../services/upload');
 const { unprocessable } = require('../lib/errors');
+const { isAdmin } = require('../middleware/auth');
 
 async function list(req, res, next) {
   try {
@@ -19,7 +20,7 @@ async function detail(req, res, next) {
     const book = await booksService.getDetail(req.params.id);
     if (req.user) {
       book.reviews = book.reviews.map((r) => ({ ...r, ownedByMe: String(r.user.id) === String(req.user.id) }));
-      book.canEdit = req.user.role === 'ADMIN' || String(book.createdBy) === String(req.user.id);
+      book.canEdit = isAdmin(req.user) || String(book.createdBy) === String(req.user.id);
     }
     res.json({ book });
   } catch (err) { next(err); }

@@ -21,14 +21,17 @@ function requireAuth(req, _res, next) {
   return next();
 }
 
+const RANK = { USER: 1, ADMIN: 2, OWNER: 3 };
+
 function requireRole(role) {
   return (req, _res, next) => {
     if (!req.user) return next(unauthorized());
-    if (req.user.role !== role && req.user.role !== 'ADMIN') return next(forbidden());
+    if ((RANK[req.user.role] || 0) < (RANK[role] || 0)) return next(forbidden());
     return next();
   };
 }
 
-const isAdmin = (user) => Boolean(user && user.role === 'ADMIN');
+const isAdmin = (user) => Boolean(user && (RANK[user.role] || 0) >= RANK.ADMIN);
+const isOwner = (user) => Boolean(user && user.role === 'OWNER');
 
-module.exports = { loadUser, requireAuth, requireRole, isAdmin };
+module.exports = { loadUser, requireAuth, requireRole, isAdmin, isOwner };

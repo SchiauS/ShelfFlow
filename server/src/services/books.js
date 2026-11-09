@@ -2,11 +2,12 @@
 const { Book, Category, Review, User, sequelize } = require('../models');
 const repo = require('../repositories/books');
 const { notFound, forbidden, conflict, unprocessable } = require('../lib/errors');
+const { isAdmin } = require('../middleware/auth');
 const { activeLoanCount } = require('../repositories/books');
 
 function assertOwnerOrAdmin(user, book) {
   if (!user) throw forbidden('Autentificare necesară.');
-  if (user.role === 'ADMIN') return;
+  if (isAdmin(user)) return;
   if (String(book.createdBy) !== String(user.id)) {
     throw forbidden('Poți modifica doar cărțile adăugate de tine.');
   }

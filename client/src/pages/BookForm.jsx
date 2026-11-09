@@ -13,7 +13,7 @@ const EMPTY = {
 export default function BookForm({ edit = false }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [form, setForm] = useState(EMPTY);
   const [categories, setCategories] = useState([]);
   const [cover, setCover] = useState(null);
@@ -28,7 +28,7 @@ export default function BookForm({ edit = false }) {
   useEffect(() => {
     if (!edit) return;
     api(`/books/${id}`).then(({ book }) => {
-      if (!book.canEdit && user?.role !== 'ADMIN') {
+      if (!book.canEdit && !isAdmin) {
         navigate(`/books/${id}`, { replace: true });
         return;
       }

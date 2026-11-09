@@ -71,6 +71,15 @@ async function makeAdmin(fields = {}) {
   const created = await makeUser(fields);
   const { User } = require('../src/models');
   await User.update({ role: 'ADMIN' }, { where: { id: created.user.id } });
+  created.user.role = 'ADMIN';
+  return created;
+}
+
+async function makeOwner(fields = {}) {
+  const created = await makeUser(fields);
+  const { User } = require('../src/models');
+  await User.update({ role: 'OWNER' }, { where: { id: created.user.id } });
+  created.user.role = 'OWNER';
   return created;
 }
 
@@ -83,4 +92,4 @@ async function createBook(actor, overrides = {}) {
   return res.body.book;
 }
 
-module.exports = { app, request, resetDb, csrf, register, login, makeUser, makeAdmin, createBook, sequelize };
+module.exports = { app, request, resetDb, csrf, register, login, makeUser, makeAdmin, makeOwner, createBook, sequelize };

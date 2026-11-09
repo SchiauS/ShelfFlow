@@ -13,8 +13,14 @@
 
 ## Roluri
 
+Ierarhie: `USER < ADMIN < OWNER`.
+
 - **USER** — catalog public, CRUD pe cărțile proprii, împrumuturi proprii, recenzii proprii, profil și notițe proprii.
-- **ADMIN** — toate drepturile USER plus administrarea utilizatorilor, cărților, recenziilor, împrumuturilor și jurnalul de audit.
+- **ADMIN** — toate drepturile USER plus administrarea cărților, recenziilor, împrumuturilor, utilizatorilor obișnuiți și jurnalul de audit.
+- **OWNER** — toate drepturile ADMIN plus numirea/retrogradarea administratorilor. Contul owner nu poate fi modificat, dezactivat sau retrogradat din interfață, iar rolul OWNER nu poate fi acordat prin API.
+
+Reguli aplicate în `services/admin.js`: niciun cont nu își poate schimba propriul rol sau propria stare din panou;
+doar OWNER poate modifica un ADMIN; un ADMIN nu poate modifica alt ADMIN; ultimul administrator activ nu poate fi retrogradat.
 
 Rolul nu poate fi ales la înregistrare: schema Zod este `.strict()`, iar serverul setează `role = 'USER'`.
 
