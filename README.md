@@ -3,7 +3,7 @@
 Sistem de management al unei biblioteci: catalog, împrumuturi, recenzii publice și date private.
 Proiect academic (provocarea de securitate 19/20) construit cu **Express + PostgreSQL + React**.
 
-- Producție: `https://schiausebastian.ro/projects/shelfflow`
+- Producție: https://schiausebastian.ro/projects/shelfflow
 - API: `https://schiausebastian.ro/projects/shelfflow/api/v1`
 
 ## Funcționalități
