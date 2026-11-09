@@ -7,3 +7,5 @@ storage/uploads/
 coverage/
 *.log
 .DS_Store
+storage/uploads/
+storage/test-uploads/
