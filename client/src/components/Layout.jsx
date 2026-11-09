@@ -50,6 +50,10 @@ export default function Layout({ children }) {
         <div className="site-footer__inner">
           <span>ShelfFlow — proiect academic de bibliotecă digitală.</span>
           <span>Express · PostgreSQL · React</span>
+          <span>
+            © {new Date().getFullYear()}{' '}
+            <a href="https://schiausebastian.ro" target="_blank" rel="noopener noreferrer">Schiau Sebastian-Adrian</a>
+          </span>
         </div>
       </footer>
     </>
