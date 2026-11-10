@@ -2,7 +2,7 @@
 const { Op } = require('sequelize');
 const { Loan, Book, User, sequelize } = require('../models');
 const config = require('../config');
-const { notFound, conflict, forbidden } = require('../lib/errors');
+const { notFound, conflict, forbidden, unprocessable } = require('../lib/errors');
 const { isAdmin } = require('../middleware/auth');
 
 function shape(loan) {
@@ -30,7 +30,12 @@ const include = [
   { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
 ];
 
-async function borrow(user, bookId) {
+async function borrow(user, bookId, days = config.loanPeriodDays) {
+  const duration = Number(days);
+  if (!Number.isInteger(duration) || duration < 1 || duration > config.maxLoanDays) {
+    throw unprocessable(`Perioada de împrumut trebuie să fie între 1 și ${config.maxLoanDays} zile.`);
+  }
+
   return sequelize.transaction(async (transaction) => {
     const book = await Book.findByPk(bookId, { transaction, lock: transaction.LOCK.UPDATE });
     if (!book) throw notFound('Cartea nu există.');
@@ -38,7 +43,7 @@ async function borrow(user, bookId) {
     if (active >= book.totalCopies) throw conflict('Nu mai există exemplare disponibile pentru împrumut.');
     const existing = await Loan.findOne({ where: { userId: user.id, bookId, status: 'active' }, transaction });
     if (existing) throw conflict('Ai deja un împrumut activ pentru această carte.');
-    const dueAt = new Date(Date.now() + config.loanPeriodDays * 86400000);
+    const dueAt = new Date(Date.now() + duration * 86400000);
     const loan = await Loan.create({ userId: user.id, bookId, dueAt, status: 'active' }, { transaction });
     return shape(await Loan.findByPk(loan.id, { include, transaction }));
   });

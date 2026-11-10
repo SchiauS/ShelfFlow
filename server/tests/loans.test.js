@@ -78,4 +78,31 @@ describe('loans', () => {
     expect(res.body.items[0].overdue).toBe(true);
     expect(res.body.items[0].daysOverdue).toBeGreaterThanOrEqual(2);
   });
+
+  it('accepts a custom loan period and rejects values outside 1..30', async () => {
+    const a = await makeUser();
+    const book = await createBook(a, { totalCopies: 3 });
+
+    const seven = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id, days: 7 });
+    expect(seven.status).toBe(201);
+    const days = (new Date(seven.body.loan.dueAt) - Date.now()) / 86400000;
+    expect(Math.round(days)).toBe(7);
+
+    const tooLong = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id, days: 31 });
+    expect(tooLong.status).toBe(422);
+
+    const zero = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id, days: 0 });
+    expect(zero.status).toBe(422);
+
+    const fraction = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id, days: 2.5 });
+    expect(fraction.status).toBe(422);
+  });
+
+  it('keeps the configured default when days is omitted', async () => {
+    const a = await makeUser();
+    const book = await createBook(a, { totalCopies: 2 });
+    const res = await a.agent.post(`${API}/loans`).set('x-csrf-token', a.token).send({ bookId: book.id }).expect(201);
+    const days = (new Date(res.body.loan.dueAt) - Date.now()) / 86400000;
+    expect(Math.round(days)).toBe(14);
+  });
 });

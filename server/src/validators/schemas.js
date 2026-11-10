@@ -55,7 +55,10 @@ const adminUserSchema = z.object({
   isActive: z.boolean().optional(),
 }).strict().refine((v) => Object.keys(v).length > 0, { message: 'Nicio modificare trimisă.' });
 
-const loanSchema = z.object({ bookId: z.string().uuid('Identificator carte invalid.') }).strict();
+const loanSchema = z.object({
+  bookId: z.string().uuid('Identificator carte invalid.'),
+  days: z.number().int('Numărul de zile trebuie să fie întreg.').min(1, 'Minim 1 zi.').max(30, 'Maxim 30 de zile.').optional(),
+}).strict();
 
 const importSearchSchema = z.object({
   q: z.string().trim().min(2, 'Caută minim 2 caractere.').max(120),

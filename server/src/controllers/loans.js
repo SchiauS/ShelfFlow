@@ -9,8 +9,8 @@ async function mine(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const { bookId } = parse(loanSchema, req.body);
-    res.status(201).json({ loan: await loanService.borrow(req.user, bookId) });
+    const { bookId, days } = parse(loanSchema, req.body);
+    res.status(201).json({ loan: await loanService.borrow(req.user, bookId, days) });
   } catch (err) { next(err); }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
 export function Stars({ value = 0, max = 5 }) {
@@ -73,6 +73,65 @@ export function ConfirmDialog({ open, title, body, confirmLabel = 'Confirmă', o
           <button type="button" className="btn btn-ghost" onClick={onCancel}>Renunță</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function LoanDialog({ open, book, defaultDays = 14, maxDays = 30, busy, onConfirm, onCancel }) {
+  const [days, setDays] = useState(String(defaultDays));
+
+  useEffect(() => { if (open) setDays(String(defaultDays)); }, [open, defaultDays]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') onCancel(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onCancel]);
+
+  if (!open) return null;
+
+  const value = Number(days);
+  const valid = Number.isInteger(value) && value >= 1 && value <= maxDays;
+  const dueAt = valid ? new Date(Date.now() + value * 86400000) : null;
+
+  const submit = (e) => { e.preventDefault(); if (valid && !busy) onConfirm(value); };
+
+  return (
+    <div className="dialog-backdrop" role="dialog" aria-modal="true" aria-label="Împrumută cartea">
+      <form className="dialog" onSubmit={submit}>
+        <h3>Împrumută „{book?.title}”</h3>
+        <p className="muted small" style={{ marginTop: 0 }}>Alege perioada de împrumut, între 1 și {maxDays} zile.</p>
+        <label className="small" htmlFor="loan-days" style={{ fontWeight: 600 }}>Număr de zile</label>
+        <input
+          id="loan-days"
+          className="input"
+          type="number"
+          inputMode="numeric"
+          min="1"
+          max={maxDays}
+          step="1"
+          value={days}
+          autoFocus
+          onChange={(e) => setDays(e.target.value)}
+          aria-invalid={!valid}
+        />
+        <div className="loan-quick" role="group" aria-label="Perioade rapide">
+          {[7, 14, 21, 30].map((n) => (
+            <button key={n} type="button" className={`btn btn-ghost btn-sm${Number(days) === n ? ' is-active' : ''}`} onClick={() => setDays(String(n))}>
+              {n} zile
+            </button>
+          ))}
+        </div>
+        <p className={`small ${valid ? 'muted' : 'error-text'}`} style={{ minHeight: '1.2rem' }}>
+          {valid ? `Retur până la ${dueAt.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })}.` : `Introdu un număr întreg între 1 și ${maxDays}.`}
+        </p>
+        <div className="form-actions">
+          <button type="submit" className="btn btn-brand" disabled={!valid || busy}>
+            {busy ? 'Se procesează…' : 'Confirmă împrumutul'}
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={busy}>Renunță</button>
+        </div>
+      </form>
     </div>
   );
 }

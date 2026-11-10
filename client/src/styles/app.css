@@ -247,3 +247,9 @@ table.data tr:last-child td { border-bottom: none; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   h1 { font-size: 2rem; }
 }
+
+/* Loan dialog */
+.dialog .input { width: 100%; margin: 0.35rem 0 0.2rem; }
+.loan-quick { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.55rem 0 0.2rem; }
+.loan-quick .btn.is-active { border-color: var(--brand); color: var(--brand-dark); background: rgba(14,107,82,0.07); }
+.error-text { color: #a33a2b; }

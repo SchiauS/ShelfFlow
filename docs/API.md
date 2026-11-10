@@ -26,7 +26,7 @@ Coduri: `200` OK, `201` creat, `400` cerere invalidă, `401` neautentificat, `40
 | PATCH | `/reviews/:id` | da | autorul sau ADMIN |
 | DELETE | `/reviews/:id` | da | autorul sau ADMIN |
 | GET | `/loans/me` | da | doar împrumuturile proprii |
-| POST | `/loans` | da | corp `{bookId}`; 409 dacă nu mai există exemplare |
+| POST | `/loans` | da | body `{ bookId, days? }`; `days` întreg 1–30, implicit 14; 409 dacă nu mai există exemplare |
 | POST | `/loans/:id/return` | da | proprietarul împrumutului sau ADMIN |
 | GET | `/import/search?q=&field=` | da | proxy către Open Library, rate limit 20/min |
 | POST | `/import/books` | da | creează carte din metadate confirmate; 409 la duplicat |

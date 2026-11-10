@@ -24,6 +24,7 @@ const config = {
     secure: bool(process.env.COOKIE_SECURE, env === 'production'),
   },
   loanPeriodDays: Number(process.env.LOAN_PERIOD_DAYS || 14),
+  maxLoanDays: Number(process.env.MAX_LOAN_DAYS || 30),
   uploads: {
     dir: path.resolve(process.cwd(), process.env.UPLOAD_DIR || './storage/uploads'),
     maxBytes: Number(process.env.MAX_UPLOAD_BYTES || 2 * 1024 * 1024),

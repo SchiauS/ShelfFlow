@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, CalendarDays, Edit3, Hash, Languages, Library, ShieldCheck, Trash2, Undo2 } from 'lucide-react';
 import { api, assetUrl } from '../lib/api.js';
 import { useAuth } from '../lib/auth.jsx';
-import { ConfirmDialog, Empty, ErrorBox, Field, Loading, Stars } from '../components/ui.jsx';
+import { ConfirmDialog, Empty, ErrorBox, Field, Loading, LoanDialog, Stars } from '../components/ui.jsx';
 import StarRating from '../components/StarRating.jsx';
 
 export default function BookDetail() {
@@ -15,6 +15,7 @@ export default function BookDetail() {
   const [notice, setNotice] = useState(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [borrowOpen, setBorrowOpen] = useState(false);
   const [review, setReview] = useState({ rating: 5, content: '' });
   const [reviewError, setReviewError] = useState(null);
 
@@ -27,13 +28,14 @@ export default function BookDetail() {
 
   useEffect(() => { load(); }, [load]);
 
-  const borrow = async () => {
+  const borrow = async (days) => {
     setBusy(true); setError(null); setNotice(null);
     try {
-      const { loan } = await api('/loans', { method: 'POST', body: { bookId: id } });
-      setNotice(`Împrumutat până la ${new Date(loan.dueAt).toLocaleDateString('ro-RO')}.`);
+      const { loan } = await api('/loans', { method: 'POST', body: { bookId: id, days } });
+      setNotice(`Împrumutat ${days} zile, până la ${new Date(loan.dueAt).toLocaleDateString('ro-RO')}.`);
+      setBorrowOpen(false);
       await load();
-    } catch (err) { setError(err); } finally { setBusy(false); }
+    } catch (err) { setError(err); setBorrowOpen(false); } finally { setBusy(false); }
   };
 
   const removeBook = async () => {
@@ -81,8 +83,8 @@ export default function BookDetail() {
               {book.availableCopies > 0 ? `${book.availableCopies} din ${book.totalCopies} disponibile` : 'Toate exemplarele sunt împrumutate'}
             </span>
             {user && book.availableCopies > 0 && (
-              <button type="button" className="btn btn-brand" onClick={borrow} disabled={busy}>
-                <Library size={16} /> Împrumută 14 zile
+              <button type="button" className="btn btn-brand" onClick={() => setBorrowOpen(true)} disabled={busy}>
+                <Library size={16} /> Împrumută
               </button>
             )}
             {canManage && (
@@ -161,6 +163,16 @@ export default function BookDetail() {
           ))}
         </div>
       </div>
+
+      <LoanDialog
+        open={borrowOpen}
+        book={book}
+        defaultDays={14}
+        maxDays={30}
+        busy={busy}
+        onConfirm={borrow}
+        onCancel={() => setBorrowOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmDelete}
